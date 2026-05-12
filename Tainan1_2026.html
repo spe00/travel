@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <!-- 確保中文字絕對不會變成亂碼 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>週末愜意三日遊</title>
+    
+    <!-- 載入 Tailwind CSS (處理精美排版) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 載入 React 與 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 載入 Babel (讓瀏覽器能直接看懂 JSX 程式碼) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50">
+    <!-- React 應用程式會掛載在這裡 -->
+    <div id="root"></div>
+
+    <!-- 我們的核心程式碼 -->
+    <script type="text/babel">
+        // 從全域 React 中取得 useState 與 useEffect
+        const { useState, useEffect } = React;
+
+        // --- 自訂 SVG 圖示 (完全零依賴，保證顯示) ---
+        const Icon = ({ name, size = 24, className = "" }) => {
+          const props = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className };
+          switch (name) {
+            case 'Briefcase': return <svg {...props}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>;
+            case 'Car': return <svg {...props}><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>;
+            case 'Coffee': return <svg {...props}><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>;
+            case 'Camera': return <svg {...props}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>;
+            case 'Home': return <svg {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+            case 'Dog': return <svg {...props}><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/><path d="M14.267 8.762c1.526-.628 3.25-.756 4.805-.384 1.554.372 2.932 1.488 3.728 3.167"/><path d="M22 11.5c-1 0-2.5-.5-2.5-1.5s1.5-1.5 2.5-1.5 2.5.5 2.5 1.5-1.5 1.5-2.5 1.5Z"/><path d="M10 5.172V19.5"/><path d="M14 8.762V19.5"/><path d="M6 10v9.5"/><path d="M18 11.5V19.5"/></svg>;
+            case 'Utensils': return <svg {...props}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>;
+            case 'Heart': return <svg {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+            case 'MapPin': return <svg {...props}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+            case 'Footprints': return <svg {...props}><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg>;
+            case 'Clock': return <svg {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+            case 'Navigation': return <svg {...props}><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>;
+            case 'Calendar': return <svg {...props}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+            case 'Cat': return <svg {...props}><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.5 0 4.97-4.03 9-9 9s-9-4.03-9-9c0-1.26.43-2.43 1-3.5 0 0-1.82-6.42-.42-7 1.39-.58 4.64.26 6.42 2.26.65-.17 1.33-.26 2-.26Z"/><path d="M9 14h.01"/><path d="M15 14h.01"/><path d="M12 16.5c1.33 0 2-.5 2-.5s-.67-.5-2-.5-2 .5-2 .5.67.5 2 .5Z"/></svg>;
+            case 'Bird': return <svg {...props}><path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20h1.4Z"/><path d="m20 7 2 .5-2 .5"/><path d="M10 18v3"/><path d="M14 17.75V21"/><path d="M7 18a6 6 0 0 0 3.84-10.61"/></svg>;
+            case 'Rabbit': return <svg {...props}><path d="M13 16a3 3 0 0 1 2.24 5"/><path d="M18 12h.01"/><path d="M18 21h-8a4 4 0 0 1-4-4 7 7 0 0 1 7-7h.2L9.6 6.4a1 1 0 1 1 2.8-2.8L15.8 7h.2c3.3 0 6 2.7 6 6v1a2 2 0 0 1-2 2h-1a3 3 0 0 0-3 3"/><path d="M20 8.54V4a2 2 0 1 0-4 0v3"/><path d="M7.612 12.524a3 3 0 1 0-1.6 4.3"/></svg>;
+            case 'PawPrint': return <svg {...props}><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>;
+            default: return <svg {...props}><circle cx="12" cy="12" r="10"/></svg>;
+          }
+        };
+
+        // --- 行程資料設定 ---
+        const itineraryData = [
+          {
+            id: 0, date: "3/27", day: "星期五", title: "第一天：啟程與放鬆",
+            events: [
+              { type: "milestone", time: "11:30", title: "開心下班出發", desc: "準備開啟美好的週末旅程！", icon: "Briefcase", color: "bg-blue-500" },
+              { type: "transit", mode: "car", text: "車程 45 分鐘" },
+              { type: "location", time: "13:00", title: "橋前駅貨櫃咖啡", desc: "特色貨櫃屋造型咖啡廳，享受旅程的第一杯咖啡的悠閒時光。", image: "https://i.ibb.co/V0mrHLys/image.jpg", links: [{ name: "開啟導航", url: "https://maps.app.goo.gl/ZdxVNBH77QRNi4vm8?g_st=al" }], icon: "Coffee", color: "bg-amber-600" },
+              { type: "transit", mode: "car", text: "車程 10 分鐘" },
+              { type: "location", time: "14:30", title: "關廟北寮彩繪村 / 嗊哩小鋪", desc: "漫步彩繪村拍照打卡，體驗在地農家樂與嗊哩文創藝術。", image: "https://i.ibb.co/21MHVkS8/image.jpg", links: [{ name: "北寮彩繪村", url: "https://maps.app.goo.gl/EXq2cmah6qMQYU866?g_st=al" }, { name: "嗊哩小鋪", url: "https://maps.app.goo.gl/6q3jwoQT12guQ9B37?g_st=al" }, { name: "嗊哩文創", url: "https://maps.app.goo.gl/HS6wd3nrqkJFUY1k9?g_st=al" }], icon: "Camera", color: "bg-pink-500" },
+              { type: "transit", mode: "car", text: "車程 30 分鐘" },
+              { type: "location", time: "16:00", title: "葉樹 Check in", desc: "抵達溫馨舒適的民宿，放置行李稍作休息。", image: "https://i.ibb.co/SwFxd1y0/image.jpg", links: [{ name: "前往民宿", url: "https://maps.app.goo.gl/EUX3aFjw7W1ZWkHM8" }], icon: "Home", color: "bg-teal-600" },
+              { type: "transit", mode: "car", text: "車程 5 分鐘" },
+              { type: "location", time: "17:00", title: "有毛真好", desc: "帶小樂去洗香香，享受舒服的寵物美容時光！", image: "https://i.ibb.co/B5VbWT8F/image.jpg", links: [{ name: "前往洗澡", url: "https://maps.app.goo.gl/fcrQdFqmey9jexWh7" }], icon: "Dog", color: "bg-orange-400" },
+              { type: "transit", mode: "car", text: "車程 15 分鐘" },
+              { type: "location", time: "17:30", title: "納瑪泰夜景晚餐", desc: "在美麗的夜景相伴下，享用美味的晚餐，為第一天畫下完美句點。", image: "https://i.ibb.co/yn34J4NF/image.jpg", links: [{ name: "餐廳導航", url: "https://maps.app.goo.gl/CDGBQEkGm5rSbXww7" }], icon: "Utensils", color: "bg-indigo-500" }
+            ]
+          },
+          {
+            id: 1, date: "3/28", day: "星期六", title: "第二天：文青與老城尋味",
+            events: [
+              { type: "milestone", time: "09:00", title: "享用民宿早餐", desc: "慵懶的早晨，吃飽才有力氣玩耍。", icon: "Coffee", color: "bg-yellow-500" },
+              { type: "transit", mode: "car", text: "車程 25 分鐘" },
+              { type: "location", time: "10:30", title: "陶豆日和咖啡甜點", desc: "品嚐精緻甜點與職人咖啡，享受優雅的上午茶。", image: "https://i.ibb.co/q330vb0g/image.jpg", links: [{ name: "前往甜點", url: "https://maps.app.goo.gl/tpHbPYbuRywEVTL3A" }], icon: "Heart", color: "bg-rose-400" },
+              { type: "transit", mode: "walk", text: "走路 5 分鐘" },
+              { type: "location", time: "13:00", title: "光洞咖啡", desc: "空間感十足的特色咖啡廳，非常適合放鬆聊天。", image: "https://i.ibb.co/FChbbRC/image.jpg", links: [{ name: "前往咖啡廳", url: "https://maps.app.goo.gl/CuFK98NofAwg4Ho76" }], icon: "Coffee", color: "bg-amber-700" },
+              { type: "transit", mode: "car", text: "車程 20 分鐘" },
+              { type: "location", time: "15:00", title: "西市場", desc: "走逛傳統與創新交織的西市場，尋寶在地特色小物。", image: "https://i.ibb.co/RpHsC7Qf/image.jpg", links: [{ name: "市場導航", url: "https://maps.app.goo.gl/qzzL7DLNf4dcPDpR8?g_st=al" }], icon: "MapPin", color: "bg-emerald-600" },
+              { type: "transit", mode: "walk", text: "走路 3 分鐘" },
+              { type: "location", time: "17:00", title: "味熟", desc: "晚餐時刻，品味質感料理與溫馨氛圍。", image: "https://i.ibb.co/tTHRkW42/image.jpg", links: [{ name: "餐廳導航", url: "https://maps.app.goo.gl/JyeQDcbCcMKKVcQF7" }], icon: "Utensils", color: "bg-red-500" },
+              { type: "transit", mode: "car", text: "車程 30 分鐘" },
+              { type: "location", time: "20:00", title: "打茶趣", desc: "飯後來杯好茶，享受靜謐的夜晚時光。", image: "https://i.ibb.co/v6F2r91G/image.jpg", links: [], icon: "Coffee", color: "bg-green-600" }
+            ]
+          },
+          {
+            id: 2, date: "3/29", day: "星期日", title: "第三天：生態與賦歸",
+            events: [
+              { type: "milestone", time: "上午", title: "葉樹退房", desc: "整理行囊，準備踏上今天的旅途。", icon: "Home", color: "bg-teal-600" },
+              { type: "transit", mode: "car", text: "車程 20 分鐘" },
+              { type: "location", time: "預計", title: "關廟護生園區", desc: "親近自然與動物，感受生命的美好與寧靜。", image: "https://i.ibb.co/k6xt5rN5/image.jpg", links: [{ name: "園區導航", url: "https://maps.app.goo.gl/p8AXZJsDuJp5aLCd7" }], icon: "Dog", color: "bg-emerald-500" },
+              { type: "milestone", time: "下午", title: "快樂賦歸", desc: "帶著滿滿的回憶，平安回家。", icon: "Heart", color: "bg-rose-500" }
+            ]
+          }
+        ];
+
+        // --- 主元件 ---
+        function App() {
+          const [activeTab, setActiveTab] = useState(0);
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-pink-100 via-blue-100 to-lime-100 font-sans text-slate-800 pb-20 relative overflow-hidden">
+              
+              {/* 滿版可愛動物背景 */}
+              <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-40">
+                <Icon name="Cat" className="absolute top-[10%] left-[5%] text-pink-300 w-16 h-16 -rotate-12" />
+                <Icon name="PawPrint" className="absolute top-[25%] right-[10%] text-blue-300 w-12 h-12 rotate-12" />
+                <Icon name="Dog" className="absolute top-[45%] left-[8%] text-lime-500 w-24 h-24 rotate-6" />
+                <Icon name="Bird" className="absolute top-[60%] right-[15%] text-pink-300 w-14 h-14 -rotate-6" />
+                <Icon name="Rabbit" className="absolute bottom-[15%] left-[20%] text-blue-300 w-20 h-20 rotate-12" />
+                <Icon name="PawPrint" className="absolute top-[80%] right-[8%] text-lime-500 w-10 h-10 -rotate-12" />
+                <Icon name="Cat" className="absolute top-[35%] right-[25%] text-pink-200 w-12 h-12 rotate-45" />
+              </div>
+
+              {/* Hero 區塊 */}
+              <header className="relative z-10 h-64 md:h-80 w-full shadow-sm">
+                <img 
+                  src="https://i.ibb.co/99ZK6W8G/image.jpg" 
+                  alt="台南三日遊" 
+                  className="absolute inset-0 w-full h-full object-cover brightness-[0.7]"
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4 text-center">
+                  <h1 className="text-3xl md:text-5xl font-bold tracking-wider mb-3 drop-shadow-lg">
+                    週末愜意三日遊
+                  </h1>
+                  <p className="text-lg md:text-xl font-medium flex items-center gap-2 drop-shadow-md bg-black/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
+                    <Icon name="Calendar" size={18} /> 3/27 (五) - 3/29 (日)
+                  </p>
+                </div>
+              </header>
+
+              {/* 導覽標籤 */}
+              <div className="sticky top-0 z-50 bg-white/70 backdrop-blur-md shadow-sm border-b border-white/50">
+                <div className="max-w-3xl mx-auto flex">
+                  {itineraryData.map((day, index) => (
+                    <button
+                      key={day.id}
+                      onClick={() => setActiveTab(index)}
+                      className={`flex-1 py-4 text-center font-medium transition-colors relative ${activeTab === index ? 'text-amber-600' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      <div className="text-xs md:text-sm mb-0.5">{day.date}</div>
+                      <div className="text-sm md:text-base">{day.day}</div>
+                      {activeTab === index && (
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500 rounded-t-full" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 主要行程內容 */}
+              <main className="relative z-10 max-w-3xl mx-auto px-4 py-8">
+                <div className="mb-8 text-center">
+                  <h2 className="text-2xl font-bold text-slate-800">
+                    {itineraryData[activeTab].title}
+                  </h2>
+                </div>
+
+                <div className="relative border-l-2 border-amber-200 ml-4 md:ml-8 pl-6 md:pl-10 pb-8 space-y-6">
+                  {itineraryData[activeTab].events.map((event, index) => {
+                    if (event.type === "transit") {
+                      const transitIconName = event.mode === "walk" ? "Footprints" : "Car";
+                      return (
+                        <div key={`transit-${activeTab}-${index}`} className="relative -ml-[31px] md:-ml-[47px] flex items-center py-2">
+                          <div className="bg-white/60 rounded-full text-slate-500 p-1">
+                            <Icon name={transitIconName} size={16} />
+                          </div>
+                          <div className="ml-4 md:ml-6 bg-white/80 backdrop-blur-sm text-slate-600 text-xs md:text-sm px-3 py-1 rounded-full font-medium shadow-sm border border-white/60">
+                            {event.text}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    const iconName = event.icon || "MapPin";
+                    const isMilestone = event.type === "milestone";
+
+                    return (
+                      <div key={`event-${activeTab}-${index}`} className="relative group">
+                        <div className={`absolute -left-[43px] md:-left-[59px] w-10 h-10 rounded-full border-4 border-slate-50 flex items-center justify-center shadow-md transition-transform group-hover:scale-110 ${event.color || 'bg-amber-500'} text-white z-10`}>
+                          <Icon name={iconName} size={18} />
+                        </div>
+
+                        <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow ${isMilestone ? 'bg-amber-50/50 border-amber-100' : ''}`}>
+                          {event.image && (
+                            <div className="h-40 md:h-56 w-full relative overflow-hidden">
+                              <img src={event.image} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                              <div className="absolute top-3 left-3 bg-black/60 text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-md">
+                                <Icon name="Clock" size={14} /> {event.time}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="p-4 md:p-6">
+                            {!event.image && (
+                               <div className="flex items-center gap-1.5 text-amber-600 font-bold text-sm mb-2">
+                                 <Icon name="Clock" size={16} /> {event.time}
+                               </div>
+                            )}
+
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">{event.title}</h3>
+                            <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-4">{event.desc}</p>
+
+                            {event.links && event.links.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100">
+                                {event.links.map((link, i) => (
+                                  <a key={`link-${index}-${i}`} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl font-medium transition-colors">
+                                    <Icon name="Navigation" size={16} /> {link.name}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </main>
+            </div>
+          );
+        }
+
+        // 啟動 React 應用程式
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
